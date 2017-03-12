@@ -1,1 +1,4 @@
 res
+*.pyc
+ __pycache__
+venv

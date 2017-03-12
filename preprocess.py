@@ -3,11 +3,28 @@ import datetime
 from collections import defaultdict
 from scipy.interpolate import interp1d
 
+opt = {
+  'print_flag': False
+}
+
+# program entry point
+def run():
+  attr_name_list, meta, data = read_file('./res/AirQualityUCI.csv')
+  rm_attr_ind, rm_entry_ind = observe_missing_value(attr_name_list, data)
+  attr_name_list, data = clean_attr(rm_attr_ind, attr_name_list, data)
+  data = fill_missing_value(meta, data)
+  meta, data = clean_entry(rm_entry_ind, meta, data)
+  return attr_name_list, meta, data
+
+# development print
+def dprint(string):
+  if opt['print_flag']: print(string)
+
 def read_file(path):
   with open(path) as f:
     content = f.readlines()
   data = []; meta = []
-  attr_name_list = filter(None, content[0].strip().split(';'))
+  attr_name_list = [x for x in content[0].strip().split(';') if x]
   for i in range(1, len(content)):
     cols = content[i].replace(',', '.').strip().split(';')[:-2]
     if all(col == '' for col in cols): continue
@@ -24,23 +41,23 @@ def observe_missing_value(attr_name_list, data):
   rm_attr_ind = []; rm_entry_ind = []
 
   # observe from attr
-  print "------------------------------------"
-  print "[attribute missing rate]"
+  dprint("------------------------------------")
+  dprint("[attribute missing rate]")
   for i in range(0, data.shape[1]):
     rate = float(sum(np.where(data[:,i] == -200., 1, 0))) / float(total) * 100
     if rate > 50.: rm_attr_ind.append(i)
-    print "%-13s:%6.2f" % (attr_name_list[i+2], rate) + "%"
+    dprint("%-13s:%6.2f" % (attr_name_list[i+2], rate) + "%")
 
   # observe from every entry
   stat = defaultdict(int)
-  print "------------------------------------"
-  print "[entry missing]"
+  dprint("------------------------------------")
+  dprint("[entry missing]")
   for i, entry in enumerate(data):
     miss_num = sum([1 if e == -200 else 0 for e in entry])
     stat[str(miss_num)] += 1
     if miss_num > 2: rm_entry_ind.append(i)
   for key in stat:
-    print "miss %2s : %5d" % (key, stat[key])
+    dprint("miss %2s : %5d" % (key, stat[key]))
 
   return rm_attr_ind, rm_entry_ind
 
@@ -51,8 +68,8 @@ def clean_attr(rm_attr_ind, attr_name_list, data):
   return attr_name_list, data
 
 def clean_entry(rm_entry_ind, meta, data):
-  data = np.delete(data, rm_entry_ind, 0)
-  meta = np.delete(meta, rm_entry_ind, 0)
+  # data = np.delete(data, rm_entry_ind, 0)
+  # meta = np.delete(meta, rm_entry_ind, 0)
   return meta, data
 
 def fill_missing_value(meta, data):
@@ -67,7 +84,7 @@ def fill_missing_value(meta, data):
       if upstream_miss + downstream_miss == 0:
         near = np.concatenate([data[:,i][ind+1:ind+interp_by_neighbor+1], data[:,i][ind-interp_by_neighbor:ind]])
         assert len(near) == interp_by_neighbor * 2, "loss neighbor (may occur at position which is near to boundary)"
-        x = range(1, interp_by_neighbor + 1) + range(interp_by_neighbor + 2, 2 * interp_by_neighbor + 2)
+        x = list(range(1, interp_by_neighbor + 1)) + list(range(interp_by_neighbor + 2, 2 * interp_by_neighbor + 2))
         f = interp1d(x, near, kind='cubic')
         data[ind,i] = f(interp_by_neighbor + 1)
       else:
@@ -92,9 +109,6 @@ def get_median_map(meta, data):
   return stat
 
 if __name__ == '__main__':
-  attr_name_list, meta, data = read_file('./res/AirQualityUCI.csv')
-  rm_attr_ind, rm_entry_ind = observe_missing_value(attr_name_list, data)
-  attr_name_list, data = clean_attr(rm_attr_ind, attr_name_list, data)
-  data = fill_missing_value(meta, data)
-  meta, data = clean_entry(rm_entry_ind, meta, data)
+  opt['print_flag'] = True
+  run()
 
