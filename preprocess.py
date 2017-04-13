@@ -10,10 +10,10 @@ opt = {
 # program entry point
 def run():
   attr_name_list, meta, data = read_file('./res/AirQualityUCI.csv')
-  rm_attr_ind, rm_entry_ind = observe_missing_value(attr_name_list, data)
+  rm_attr_ind, rm_example_ind = observe_missing_value(attr_name_list, data)
   attr_name_list, data = clean_attr(rm_attr_ind, attr_name_list, data)
   data = fill_missing_value(meta, data)
-  meta, data = clean_entry(rm_entry_ind, meta, data)
+  meta, data = clean_example(rm_example_ind, meta, data)
   return attr_name_list, meta, data
 
 # development print
@@ -38,7 +38,7 @@ def read_file(path):
 
 def observe_missing_value(attr_name_list, data):
   total = data.shape[0]
-  rm_attr_ind = []; rm_entry_ind = []
+  rm_attr_ind = []; rm_example_ind = []
 
   # observe from attr
   dprint("------------------------------------")
@@ -48,18 +48,18 @@ def observe_missing_value(attr_name_list, data):
     if rate > 50.: rm_attr_ind.append(i)
     dprint("%-13s:%6.2f" % (attr_name_list[i+2], rate) + "%")
 
-  # observe from every entry
+  # observe from every example
   stat = defaultdict(int)
   dprint("------------------------------------")
-  dprint("[entry missing]")
-  for i, entry in enumerate(data):
-    miss_num = sum([1 if e == -200 else 0 for e in entry])
+  dprint("[example missing] \n(format => number of missing attr: number of data)")
+  for i, example in enumerate(data):
+    miss_num = sum([1 if e == -200 else 0 for e in example])
     stat[str(miss_num)] += 1
-    if miss_num > 2: rm_entry_ind.append(i)
+    if miss_num > 2: rm_example_ind.append(i)
   for key in stat:
     dprint("miss %2s : %5d" % (key, stat[key]))
 
-  return rm_attr_ind, rm_entry_ind
+  return rm_attr_ind, rm_example_ind
 
 def clean_attr(rm_attr_ind, attr_name_list, data):
   data = np.delete(data, rm_attr_ind, 1)
@@ -67,9 +67,9 @@ def clean_attr(rm_attr_ind, attr_name_list, data):
   attr_name_list = np.delete(attr_name_list, rm_attr_ind, 0)
   return attr_name_list, data
 
-def clean_entry(rm_entry_ind, meta, data):
-  # data = np.delete(data, rm_entry_ind, 0)
-  # meta = np.delete(meta, rm_entry_ind, 0)
+def clean_example(rm_example_ind, meta, data):
+  # data = np.delete(data, rm_example_ind, 0)
+  # meta = np.delete(meta, rm_example_ind, 0)
   return meta, data
 
 def fill_missing_value(meta, data):
