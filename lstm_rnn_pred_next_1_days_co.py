@@ -32,30 +32,30 @@ attr_name_list, data = dataset.feature.add_hour(attr_name_list, meta, data)
 # load model if exist
 pred_days = 5 * 24
 if os.path.exists('result/pred_next_1_co.model'):
-  min = data[:,0].min()
-  max = data[:,0].max()
-  model = keras.models.load_model('result/pred_next_1_co.model')
-  result = []
-  replace_ans = test_X[0][-1][0] * (max - min) + min
-  for i in range(0, pred_days):
-    test_X[i][-1][0] = (replace_ans - min) / (max - min)
-    pred = model.predict(test_X[i].reshape(1, 240, 3))
-    result.append(pred.tolist()[0][0])
-    replace_ans = pred[0][0]
-  print(result)
-  print(test_Y[:120,0])
-  with open('result/pred_next_1_days_co.result', 'w') as f:
-    json.dump({'pred': result, 'eval': test_Y[:120,0].tolist()}, f)
-  gc.collect()
-  exit()
+    min = data[:,0].min()
+    max = data[:,0].max()
+    model = keras.models.load_model('result/pred_next_1_co.model')
+    result = []
+    replace_ans = test_X[0][-1][0] * (max - min) + min
+    for i in range(0, pred_days):
+        test_X[i][-1][0] = (replace_ans - min) / (max - min)
+        pred = model.predict(test_X[i].reshape(1, 240, 3))
+        result.append(pred.tolist()[0][0])
+        replace_ans = pred[0][0]
+    print(result)
+    print(test_Y[:120,0])
+    with open('result/pred_next_1_days_co.result', 'w') as f:
+        json.dump({'pred': result, 'eval': test_Y[:120,0].tolist()}, f)
+    gc.collect()
+    exit()
 
 # define keras rnn
 model = Sequential()
 model.add(LSTM(
-  input_shape=(TIME_STEPS, INPUT_SIZE),
-  output_dim=CELL_SIZE,
-  dropout_W=0.4,
-  dropout_U=0.4,
+    input_shape=(TIME_STEPS, INPUT_SIZE),
+    output_dim=CELL_SIZE,
+    dropout_W=0.4,
+    dropout_U=0.4,
 ))
 model.add(Dense(OUTPUT_SIZE))
 model.compile(optimizer=RMSprop(LR), loss='mse')
@@ -64,11 +64,11 @@ model.compile(optimizer=RMSprop(LR), loss='mse')
 ''' Another training method
 batch_start = 0
 for step in range(500):
-  x, y = dataset.get_batch(train_X, train_Y, BATCH_SIZE, batch_start)
-  cost = model.train_on_batch(x, y)
-  # batch_start += BATCH_SIZE
-  if step % 10 == 0:
-    print('train cost: ', cost)
+    x, y = dataset.get_batch(train_X, train_Y, BATCH_SIZE, batch_start)
+    cost = model.train_on_batch(x, y)
+    # batch_start += BATCH_SIZE
+    if step % 10 == 0:
+        print('train cost: ', cost)
 '''
 
 model.fit(train_X, train_Y, nb_epoch=10, batch_size=30)
@@ -79,5 +79,5 @@ gc.collect()
 # eval
 print("testing data mse: %f" % mean_squared_error(test_Y, pred_Y))
 with open('result/pred_next_1_days_co.result', 'w') as f:
-  json.dump({'pred': pred_Y.tolist(), 'eval': test_Y.tolist()}, f)
+    json.dump({'pred': pred_Y.tolist(), 'eval': test_Y.tolist()}, f)
 

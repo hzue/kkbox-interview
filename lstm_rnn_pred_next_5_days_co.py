@@ -30,10 +30,10 @@ attr_name_list, data = dataset.feature.add_hour(attr_name_list, meta, data)
 # define keras rnn
 model = Sequential()
 model.add(LSTM(
-  input_shape=(TIME_STEPS, INPUT_SIZE),
-  output_dim=CELL_SIZE,
-  # dropout_W=0.4,
-  # dropout_U=0.4
+    input_shape=(TIME_STEPS, INPUT_SIZE),
+    output_dim=CELL_SIZE,
+    # dropout_W=0.4,
+    # dropout_U=0.4
 ))
 model.add(Dense(OUTPUT_SIZE))
 model.compile(optimizer=RMSprop(LR), loss='mse')
@@ -42,11 +42,11 @@ model.compile(optimizer=RMSprop(LR), loss='mse')
 ''' Another training method
 batch_start = 0
 for step in range(500):
-  x, y = dataset.get_batch(train_X, train_Y, BATCH_SIZE, batch_start)
-  cost = model.train_on_batch(x, y)
-  # batch_start += BATCH_SIZE
-  if step % 10 == 0:
-    print('train cost: ', cost)
+    x, y = dataset.get_batch(train_X, train_Y, BATCH_SIZE, batch_start)
+    cost = model.train_on_batch(x, y)
+    # batch_start += BATCH_SIZE
+    if step % 10 == 0:
+        print('train cost: ', cost)
 '''
 
 model.fit(train_X, train_Y, nb_epoch=20, batch_size=30)
@@ -55,5 +55,5 @@ pred_Y = model.predict(train_X)
 gc.collect()
 print("testing data mse: %f" % mean_squared_error(test_Y, pred_Y))
 with open('result/pred_next_5_days_co.result', 'w') as f:
-  json.dump({'pred': train_Y.tolist(), 'eval': pred_Y.tolist()}, f)
+    json.dump({'pred': train_Y.tolist(), 'eval': pred_Y.tolist()}, f)
 
